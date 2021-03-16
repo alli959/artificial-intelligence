@@ -1,0 +1,1 @@
+Download the CIFAR-10 dataset from notendur.hi.is/steinng/kennsla/2021/ml/data/cifar-10-batches-py.zip and extract into folder cifar-10-batches-py
