@@ -67,7 +67,7 @@ class TwoLayerNet(object):
           with respect to the loss function; has the same keys as self.params.
         """
         # Unpack variables from the params dictionary
-        W1, b1 = self.params['W1'], self.params['b1']
+        W1, b1 = self.params['W1'], self.params['b1'] 
         W2, b2 = self.params['W2'], self.params['b2']
         N, D = X.shape
 
@@ -79,8 +79,11 @@ class TwoLayerNet(object):
         # shape (N, C).                                                             #
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-        pass
+        
+        #RElU Activation
+        hidden_layer = np.maximum(0, np.dot(X, W1) + b1)
+        scores = np.dot(hidden_layer, W2) + b2
+        
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -98,7 +101,16 @@ class TwoLayerNet(object):
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        # compute the class probabilities
+        exp_scores = np.exp(scores)
+        probs = exp_scores / np.sum(exp_scores, axis=1, keepdims=True) # [N x K]
+
+        # average cross-entropy loss and regularization
+        corect_logprobs = -np.log(probs[range(N),y])
+        data_loss = np.sum(corect_logprobs)/N
+        reg_loss = 0.5*reg*np.sum(W1*W1) + 0.5*reg*np.sum(W2*W2)
+        loss = data_loss + reg_loss
+        
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -110,8 +122,25 @@ class TwoLayerNet(object):
         # grads['W1'] should store the gradient on W1, and be a matrix of same size #
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
+        dscores = probs
+        dscores[range(N),y] -= 1
+        dscores /= N
 
-        pass
+        # W2 and b2
+        grads['W2'] = np.dot(hidden_layer.T, dscores)
+        grads['b2'] = np.sum(dscores, axis=0)
+        # next backprop into hidden layer
+        dhidden = np.dot(dscores, W2.T)
+        # backprop the ReLU non-linearity
+        dhidden[hidden_layer <= 0] = 0
+        # finally into W,b
+        grads['W1'] = np.dot(X.T, dhidden)
+        grads['b1'] = np.sum(dhidden, axis=0)
+
+        # add regularization gradient contribution
+        grads['W2'] += reg * W2
+        grads['W1'] += reg * W1
+        
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
